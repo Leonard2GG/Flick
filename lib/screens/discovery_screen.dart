@@ -111,31 +111,14 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
     if (action == CardAction.watchLater) {
       context.read<MovieProvider>().addToWatchlist(movie);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${movie.title} agregada a tu lista'),
-          duration: const Duration(milliseconds: 800),
-          backgroundColor: Colors.green[700],
-        ),
-      );
     } else if (action == CardAction.discard) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${movie.title} descartada'),
-          duration: const Duration(milliseconds: 600),
-          backgroundColor: Colors.red[700],
-        ),
-      );
+      // Acción descartada
     }
 
     if (_currentIndex < filteredMovies.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay más películas en esta categoría')),
       );
     }
   }

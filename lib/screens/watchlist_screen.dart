@@ -80,9 +80,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 ),
                 onDismissed: (direction) {
                   movieProvider.removeFromWatchlist(movie);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${movie.title} eliminada')),
-                  );
                 },
                 child: Container(
                   margin: EdgeInsets.only(bottom: 16),
