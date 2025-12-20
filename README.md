@@ -1,2 +1,3 @@
-# Flick
-A movie aplication
+# flick
+
+A new Flutter project.
