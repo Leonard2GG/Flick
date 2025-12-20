@@ -44,12 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: const Color(0xFF121212),
             centerTitle: true,
             title: const Text('FLICK', style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () => showSearch(context: context, delegate: MovieSearchDelegate()),
-              )
-            ],
           ),
           SliverToBoxAdapter(
             child: Padding(

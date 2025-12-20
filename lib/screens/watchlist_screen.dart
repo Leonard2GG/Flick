@@ -30,7 +30,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       appBar: AppBar(
         title: const Text(
           'MI LISTA',
-          style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
+          style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent),
         ),
         backgroundColor: const Color(0xFF121212),
         elevation: 0,

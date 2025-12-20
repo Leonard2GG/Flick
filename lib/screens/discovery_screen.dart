@@ -120,7 +120,77 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+    } else {
+      // Se acabaron las películas - mostrar pantalla de fin
+      _showEndOfMoviesScreen();
     }
+  }
+
+  void _showEndOfMoviesScreen() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.done_all,
+              size: 80,
+              color: Colors.greenAccent,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              '¡Lo hiciste!',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Viste todas las películas de ${widget.categoryName}',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Volver',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -129,11 +199,35 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
     if (filteredMovies.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.categoryName),
-        ),
         body: Center(
-          child: Text('No hay películas en la categoría ${widget.categoryName}'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.movie_filter,
+                size: 80,
+                color: Colors.grey[700],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No hay películas',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[400],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'en la categoría ${widget.categoryName}',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
