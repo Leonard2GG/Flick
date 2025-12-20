@@ -4,7 +4,9 @@ import '../widgets/category_card.dart';
 import '../widgets/movie_search_delegate.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(String)? onCategorySelected;
+  
+  const HomeScreen({super.key, this.onCategorySelected});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -88,7 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisSpacing: 15,
               ),
               delegate: SliverChildBuilderDelegate(
-                (context, index) => CategoryCard(name: categories[index]['name'], color: categories[index]['color']),
+                (context, index) => CategoryCard(
+                  name: categories[index]['name'],
+                  color: categories[index]['color'],
+                  onTap: () {
+                    if (widget.onCategorySelected != null) {
+                      widget.onCategorySelected!(categories[index]['name']);
+                    }
+                  },
+                ),
                 childCount: categories.length,
               ),
             ),

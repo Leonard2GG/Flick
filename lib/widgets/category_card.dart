@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
-import '../screens/discovery_screen.dart'; // Importa la nueva pantalla
 
 class CategoryCard extends StatelessWidget {
   final String name;
   final Color color;
+  final VoidCallback? onTap;
 
-  const CategoryCard({super.key, required this.name, required this.color});
+  const CategoryCard({
+    super.key,
+    required this.name,
+    required this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // NAVEGACIÓN AÑADIDA
-        Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (context) => DiscoveryScreen(categoryName: name))
-        );
+        if (onTap != null) {
+          onTap!();
+        }
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(

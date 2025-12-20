@@ -12,20 +12,33 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const DiscoveryScreenWrapper(),
-    const WatchlistScreen(),
-  ];
+  String _currentCategory = 'Descubrir';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: _selectedIndex == 0
+          ? HomeScreen(
+              onCategorySelected: (category) {
+                setState(() {
+                  _currentCategory = category;
+                  _selectedIndex = 1;
+                });
+              },
+            )
+          : _selectedIndex == 1
+              ? DiscoveryScreenWrapper(categoryName: _currentCategory)
+              : const WatchlistScreen(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+            if (index == 1) {
+              _currentCategory = 'Descubrir';
+            }
+          });
+        },
         backgroundColor: const Color(0xFF121212),
         selectedItemColor: Colors.greenAccent,
         unselectedItemColor: Colors.grey,
@@ -43,10 +56,11 @@ class _MainWrapperState extends State<MainWrapper> {
 
 // Wrapper para la pantalla de descubrimiento
 class DiscoveryScreenWrapper extends StatelessWidget {
-  const DiscoveryScreenWrapper({super.key});
+  final String categoryName;
+  const DiscoveryScreenWrapper({super.key, this.categoryName = 'Descubrir'});
 
   @override
   Widget build(BuildContext context) {
-    return const DiscoveryScreen(categoryName: 'Descubrir');
+    return DiscoveryScreen(categoryName: categoryName);
   }
 }
