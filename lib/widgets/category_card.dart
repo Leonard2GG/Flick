@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class CategoryCard extends StatelessWidget {
   final String name;
   final Color color;
+  final List<Color>? gradientColors;
   final VoidCallback? onTap;
 
   const CategoryCard({
     super.key,
     required this.name,
     required this.color,
+    this.gradientColors,
     this.onTap,
   });
 
@@ -24,11 +26,17 @@ class CategoryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.8), color],
-          ),
+          gradient: gradientColors != null && gradientColors!.length >= 2
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradientColors!,
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color.withValues(alpha: 0.8), color],
+                ),
         ),
         child: Stack(
           children: [

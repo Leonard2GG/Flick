@@ -59,15 +59,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       vsync: this,
     );
     _pageController = PageController();
-    
+    _loadMovies();
+  }
+
+  void _loadMovies() {
     // Si la categoría es un género conocido, buscar por ese género
     if (_genreNameToId.containsKey(widget.categoryName)) {
-      _moviesFuture = TMDBService.getMoviesByGenre(
+      _moviesFuture = TMDBService.getRandomMoviesByGenre(
         _genreNameToId[widget.categoryName]!,
       );
     } else if (widget.categoryName == 'Descubrir') {
-      // Si es "Descubrir", obtener películas populares
-      _moviesFuture = TMDBService.getPopularMovies();
+      // Si es "Descubrir", obtener películas populares aleatorias
+      _moviesFuture = TMDBService.getRandomPopularMovies();
     } else {
       // Si es una búsqueda de texto, buscar por nombre
       _moviesFuture = TMDBService.searchMovies(widget.categoryName);
@@ -81,10 +84,53 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     super.dispose();
   }
 
+  void _refreshMovies() {
+    setState(() {
+      _loadMovies();
+      _currentIndex = 0;
+      _dragOffset = Offset.zero;
+      _currentAction = null;
+    });
+  }
+
   List<Movie> _filterMoviesByName(List<Movie> movies) {
-    // Ya no necesitamos filtrar aquí porque la API ya retorna
-    // películas del género o búsqueda correcta
-    return movies;
+    // Filtrar películas que no se llamen exactamente como la categoría
+    return movies.where((movie) {
+      final movieTitle = movie.title.toLowerCase().trim();
+      final categoryName = widget.categoryName.toLowerCase().trim();
+      return movieTitle != categoryName;
+    }).toList();
+  }
+
+  List<Movie> _filterOutDuplicateNames(List<Movie> movies) {
+    // Asegurar que las primeras películas no se llamen igual que otras
+    // (evitar duplicados en los primeros lugares)
+    if (movies.length <= 2) return movies;
+    
+    final result = <Movie>[movies[0]];
+    
+    for (int i = 1; i < movies.length; i++) {
+      bool isDuplicate = result.any((m) => 
+        m.title.toLowerCase() == movies[i].title.toLowerCase()
+      );
+      
+      if (!isDuplicate) {
+        result.add(movies[i]);
+        if (result.length >= 2) break; // Solo necesitamos 2 películas únicas
+      }
+    }
+    
+    // Si aún no tenemos 2 películas únicas, agregar más del resto
+    if (result.length < 2 && movies.length > result.length) {
+      for (int i = 0; i < movies.length && result.length < movies.length; i++) {
+        bool alreadyInResult = result.any((m) => m.id == movies[i].id);
+        if (!alreadyInResult) {
+          result.add(movies[i]);
+        }
+      }
+    }
+    
+    return result.length <= 2 ? result : result.sublist(0, 2) + movies.sublist(2);
   }
 
   void _handleSwipeAction(CardAction action) {
@@ -194,6 +240,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _refreshMovies,
+        backgroundColor: Colors.greenAccent,
+        child: const Icon(Icons.refresh, color: Colors.black),
+      ),
       body: FutureBuilder<List<Movie>>(
         future: _moviesFuture,
         builder: (context, snapshot) {
@@ -274,6 +325,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           // Datos cargados exitosamente
           final allMovies = snapshot.data ?? [];
           _filteredMovies = _filterMoviesByName(allMovies);
+          // Filtrar también para evitar duplicados en los primeros lugares
+          _filteredMovies = _filterOutDuplicateNames(_filteredMovies);
 
           if (_filteredMovies.isEmpty) {
             return Center(

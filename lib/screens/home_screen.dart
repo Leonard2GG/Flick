@@ -31,20 +31,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color _getColorForGenre(String genreName) {
     final colorMap = {
-      'Acción': Colors.orange,
+      'Acción': Colors.red,
       'Comedia': Colors.blue,
       'Terror': Colors.purple,
-      'Drama': Colors.red,
-      'Sci-Fi': Colors.teal,
+      'Drama': Colors.deepOrange,
+      'Sci-Fi': Colors.cyan,
       'Documentales': Colors.green,
       'Aventura': Colors.amber,
       'Animación': Colors.pink,
-      'Familia': Colors.cyan,
+      'Familia': Colors.lightBlue,
       'Fantasía': Colors.deepPurple,
       'Thriller': Colors.indigo,
-      'Romance': Colors.pink,
+      'Romance': Colors.pinkAccent,
+      'Crimen': Colors.blueGrey,
+      'Historia': Colors.brown,
+      'Música': Colors.orange,
+      'Misterio': Colors.purpleAccent,
+      'Guerra': Colors.grey,
+      'Western': Colors.orange,
+      'Televisión': Colors.teal,
     };
     return colorMap[genreName] ?? Colors.grey;
+  }
+
+  List<Color> _getGradientColorsForGenre(String genreName) {
+    final gradientMap = {
+      'Acción': [Colors.red.shade700, Colors.red.shade400],
+      'Comedia': [Colors.blue.shade700, Colors.blue.shade400],
+      'Terror': [Colors.purple.shade900, Colors.purple.shade600],
+      'Drama': [Colors.deepOrange.shade700, Colors.deepOrange.shade400],
+      'Sci-Fi': [Colors.cyan.shade700, Colors.cyan.shade400],
+      'Documentales': [Colors.green.shade700, Colors.green.shade400],
+      'Aventura': [Colors.amber.shade700, Colors.amber.shade400],
+      'Animación': [Colors.pink.shade700, Colors.pink.shade400],
+      'Familia': [Colors.lightBlue.shade700, Colors.lightBlue.shade400],
+      'Fantasía': [Colors.deepPurple.shade900, Colors.deepPurple.shade600],
+      'Thriller': [Colors.indigo.shade700, Colors.indigo.shade400],
+      'Romance': [Colors.pinkAccent.shade700, Colors.pinkAccent.shade400],
+      'Crimen': [Colors.blueGrey.shade700, Colors.blueGrey.shade400],
+      'Historia': [Colors.brown.shade700, Colors.brown.shade400],
+      'Música': [Colors.orange.shade700, Colors.orange.shade400],
+      'Misterio': [Colors.purpleAccent.shade700, Colors.purpleAccent.shade400],
+      'Guerra': [Colors.grey.shade700, Colors.grey.shade400],
+      'Western': [Colors.orange.shade900, Colors.orange.shade600],
+      'Televisión': [Colors.teal.shade700, Colors.teal.shade400],
+    };
+    return gradientMap[genreName] ?? [Colors.grey.shade700, Colors.grey.shade400];
   }
 
   @override
@@ -124,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     (context, index) => CategoryCard(
                       name: genres[index]['name'],
                       color: _getColorForGenre(genres[index]['name']),
+                      gradientColors: _getGradientColorsForGenre(genres[index]['name']),
                       onTap: () {
                         if (widget.onCategorySelected != null) {
                           widget.onCategorySelected!(genres[index]['name']);

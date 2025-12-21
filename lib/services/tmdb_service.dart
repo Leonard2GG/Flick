@@ -48,6 +48,12 @@ class TMDBService {
     );
   }
 
+  static Future<List<Movie>> getRandomPopularMovies() async {
+    // Obtener una página aleatoria (entre 1 y 10 para películas populares)
+    final randomPage = DateTime.now().millisecondsSinceEpoch % 10 + 1;
+    return getPopularMovies(page: randomPage);
+  }
+
   static Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
     // Validar query
     if (query.isEmpty || query.length > 100) {
@@ -129,6 +135,12 @@ class TMDBService {
       maxRetries: 3,
       retryDelay: const Duration(seconds: 2),
     );
+  }
+
+  static Future<List<Movie>> getRandomMoviesByGenre(int genreId) async {
+    // Obtener una página aleatoria (entre 1 y 5 para películas por género)
+    final randomPage = DateTime.now().millisecondsSinceEpoch % 5 + 1;
+    return getMoviesByGenre(genreId, page: randomPage);
   }
 
   /// Obtiene actores de una película
