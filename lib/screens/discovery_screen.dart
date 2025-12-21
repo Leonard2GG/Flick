@@ -139,9 +139,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
     if (action == CardAction.watchLater) {
       movieProvider.addToWatchlist(movie);
-      _showActionFeedback('Agregado a mi lista', Colors.greenAccent);
     } else if (action == CardAction.discard) {
-      _showActionFeedback('Película descartada', Colors.redAccent);
+      // Película descartada
     }
 
     // Registrar en historial
@@ -158,17 +157,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     }
   }
 
-  void _showActionFeedback(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(milliseconds: 1500),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
-      ),
-    );
-  }
+
 
   void _showEndOfMoviesScreen() {
     showModalBottomSheet(
