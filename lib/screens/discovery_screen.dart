@@ -87,17 +87,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     try {
       List<Movie> newMovies = [];
 
-      // Si la categoría es un género conocido, buscar por ese género
+      // Si la categoría es un género conocido, usar páginas aleatorias para variar resultados
       if (_genreNameToId.containsKey(widget.categoryName)) {
-        newMovies = await TMDBService.getMoviesByGenre(
+        newMovies = await TMDBService.getRandomMoviesByGenre(
           _genreNameToId[widget.categoryName]!,
-          page: _currentPage,
         );
       } else if (widget.categoryName == 'Descubrir') {
-        // Si es "Descubrir", obtener películas populares
-        newMovies = await TMDBService.getPopularMovies(page: _currentPage);
+        // Si es "Descubrir", obtener películas populares de una página aleatoria
+        newMovies = await TMDBService.getRandomPopularMovies();
       } else {
-        // Si es una búsqueda de texto, buscar por nombre
+        // Si es una búsqueda de texto, buscar por nombre (esto seguirá siendo determinista por query)
         newMovies = await TMDBService.searchMovies(widget.categoryName, page: _currentPage);
       }
 

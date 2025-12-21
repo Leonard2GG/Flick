@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/movie.dart';
+import '../services/tmdb_service.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   final Movie movie;
@@ -15,10 +16,26 @@ class MovieDetailScreen extends StatefulWidget {
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  List<String> _fetchedCast = [];
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    // Intentar cargar reparto actualizado desde TMDB cuando se abra la pantalla
+    _loadCast();
+  }
+
+  Future<void> _loadCast() async {
+    try {
+      final castData = await TMDBService.getMovieCast(widget.movie.id);
+      if (mounted) {
+        setState(() {
+          _fetchedCast = castData.map((c) => (c['name'] ?? '').toString()).where((n) => n.isNotEmpty).toList();
+        });
+      }
+    } catch (_) {
+      // Ignorar errores y dejar el cast que venga en la película
+    }
   }
 
   @override
@@ -208,7 +225,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      children: widget.movie.cast.map((actor) {
+                      children: ( _fetchedCast.isNotEmpty ? _fetchedCast : widget.movie.cast ).map((actor) {
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
