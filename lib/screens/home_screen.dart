@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'Terror': Colors.purple,
       'Drama': Colors.deepOrange,
       'Sci-Fi': Colors.cyan,
-      'Documentales': Colors.green,
+      'Documental': Colors.green,
       'Aventura': Colors.amber,
       'Animación': Colors.pink,
       'Familia': Colors.lightBlue,
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'Terror': [Colors.purple.shade900, Colors.purple.shade600],
       'Drama': [Colors.deepOrange.shade700, Colors.deepOrange.shade400],
       'Sci-Fi': [Colors.cyan.shade700, Colors.cyan.shade400],
-      'Documentales': [Colors.green.shade700, Colors.green.shade400],
+      'Documental': [Colors.green.shade700, Colors.green.shade400],
       'Aventura': [Colors.amber.shade700, Colors.amber.shade400],
       'Animación': [Colors.pink.shade700, Colors.pink.shade400],
       'Familia': [Colors.lightBlue.shade700, Colors.lightBlue.shade400],
@@ -77,6 +77,32 @@ class _HomeScreenState extends State<HomeScreen> {
       'Televisión': [Colors.teal.shade700, Colors.teal.shade400],
     };
     return gradientMap[genreName] ?? [Colors.grey.shade700, Colors.grey.shade400];
+  }
+  
+  // Mapear nombres de géneros desde TMDB (inglés) a nombres en español usados en la app
+  String _mapEnglishToSpanish(String englishName) {
+    const map = {
+      'Action': 'Acción',
+      'Adventure': 'Aventura',
+      'Animation': 'Animación',
+      'Comedy': 'Comedia',
+      'Crime': 'Crimen',
+      'Documentary': 'Documental',
+      'Drama': 'Drama',
+      'Family': 'Familia',
+      'Fantasy': 'Fantasía',
+      'History': 'Historia',
+      'Horror': 'Terror',
+      'Music': 'Música',
+      'Mystery': 'Misterio',
+      'Romance': 'Romance',
+      'Science Fiction': 'Sci-Fi',
+      'TV Movie': 'Televisión',
+      'Thriller': 'Thriller',
+      'War': 'Guerra',
+      'Western': 'Western',
+    };
+    return map[englishName] ?? englishName;
   }
 
   @override
@@ -154,12 +180,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => CategoryCard(
-                      name: genres[index]['name'],
-                      color: _getColorForGenre(genres[index]['name']),
-                      gradientColors: _getGradientColorsForGenre(genres[index]['name']),
+                      name: _mapEnglishToSpanish(genres[index]['name']),
+                      color: _getColorForGenre(_mapEnglishToSpanish(genres[index]['name'])),
+                      gradientColors: _getGradientColorsForGenre(_mapEnglishToSpanish(genres[index]['name'])),
                       onTap: () {
                         if (widget.onCategorySelected != null) {
-                          widget.onCategorySelected!(genres[index]['name']);
+                          widget.onCategorySelected!(_mapEnglishToSpanish(genres[index]['name']));
                         }
                       },
                     ),

@@ -129,7 +129,7 @@ class MovieSearchDelegate extends SearchDelegate {
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        DiscoveryScreen(categoryName: results[i].title),
+                        DiscoveryScreen(categoryName: results[i].title, fromSearch: true),
                   ),
                 );
               },
