@@ -78,6 +78,7 @@ class Movie {
     double? userRating,
     bool? isFavorite,
     DateTime? viewedAt,
+    DateTime? addedToWatchlistAt,
   }) {
     return Movie(
       id: id,
@@ -91,7 +92,7 @@ class Movie {
       userRating: userRating ?? this.userRating,
       isFavorite: isFavorite ?? this.isFavorite,
       viewedAt: viewedAt ?? this.viewedAt,
-      addedToWatchlistAt: addedToWatchlistAt,
+      addedToWatchlistAt: addedToWatchlistAt ?? this.addedToWatchlistAt,
     );
   }
 }

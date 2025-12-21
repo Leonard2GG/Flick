@@ -29,6 +29,27 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   CardAction? _currentAction;
   late Future<List<Movie>> _moviesFuture;
   List<Movie> _filteredMovies = [];
+  final Map<String, int> _genreNameToId = {
+    'Acción': 28,
+    'Aventura': 12,
+    'Animación': 16,
+    'Comedia': 35,
+    'Crimen': 80,
+    'Documental': 99,
+    'Drama': 18,
+    'Familia': 10751,
+    'Fantasía': 14,
+    'Historia': 36,
+    'Terror': 27,
+    'Música': 10402,
+    'Misterio': 9648,
+    'Romance': 10749,
+    'Sci-Fi': 878,
+    'Televisión': 10770,
+    'Thriller': 53,
+    'Guerra': 10752,
+    'Western': 37,
+  };
 
   @override
   void initState() {
@@ -38,7 +59,19 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       vsync: this,
     );
     _pageController = PageController();
-    _moviesFuture = TMDBService.getPopularMovies();
+    
+    // Si la categoría es un género conocido, buscar por ese género
+    if (_genreNameToId.containsKey(widget.categoryName)) {
+      _moviesFuture = TMDBService.getMoviesByGenre(
+        _genreNameToId[widget.categoryName]!,
+      );
+    } else if (widget.categoryName == 'Descubrir') {
+      // Si es "Descubrir", obtener películas populares
+      _moviesFuture = TMDBService.getPopularMovies();
+    } else {
+      // Si es una búsqueda de texto, buscar por nombre
+      _moviesFuture = TMDBService.searchMovies(widget.categoryName);
+    }
   }
 
   @override
@@ -49,15 +82,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   }
 
   List<Movie> _filterMoviesByName(List<Movie> movies) {
-    // Si la categoría es "Descubrir", mostrar todas las películas
-    if (widget.categoryName == 'Descubrir') {
-      return movies;
-    }
-    // Filtrar películas por nombre (contiene el nombre buscado)
-    final filtered = movies
-        .where((movie) => movie.title.toLowerCase().contains(widget.categoryName.toLowerCase()))
-        .toList();
-    return filtered;
+    // Ya no necesitamos filtrar aquí porque la API ya retorna
+    // películas del género o búsqueda correcta
+    return movies;
   }
 
   void _handleSwipeAction(CardAction action) {
@@ -701,43 +728,83 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  GridView.count(
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    children: movie.cast.map((actor) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.greenAccent.withValues(alpha: 0.3),
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 35,
-                              color: Colors.greenAccent,
+                  // Cargar reparto desde TMDB
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: TMDBService.getMovieCast(movie.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.greenAccent,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            actor,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                        );
+                      }
+
+                      if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Sin información de reparto',
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
-                        ],
+                        );
+                      }
+
+                      final castList = snapshot.data!;
+                      return GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        children: castList.map((actor) {
+                          final profilePath = actor['profilePath'] ?? '';
+                          final hasImage = profilePath.isNotEmpty;
+
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              hasImage
+                                  ? ClipOval(
+                                      child: CachedImageLoader(
+                                        imageUrl: profilePath,
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.greenAccent.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.person,
+                                        size: 35,
+                                        color: Colors.greenAccent,
+                                      ),
+                                    ),
+                              const SizedBox(height: 8),
+                              Text(
+                                actor['name']!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
+                    },
                   ),
                   const SizedBox(height: 30),
                 ],

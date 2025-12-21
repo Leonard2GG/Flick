@@ -76,9 +76,6 @@ class MovieProvider with ChangeNotifier {
     try {
       final ratingsJson = _prefs.getString(_ratingsKey);
       if (ratingsJson != null) {
-        final Map<String, dynamic> decoded = Map<String, dynamic>.from(
-          (await Future.value(ratingsJson.split(','))).asMap().cast(),
-        );
         // Simple parsing
         for (final entry in (ratingsJson.split(';'))) {
           final parts = entry.split(':');

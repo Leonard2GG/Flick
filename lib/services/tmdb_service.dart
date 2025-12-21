@@ -92,6 +92,80 @@ class TMDBService {
     );
   }
 
+  static Future<List<Movie>> getMoviesByGenre(int genreId, {int page = 1}) async {
+    return ConnectivityUtils.executeWithRetries(
+      () async {
+        final response = await http.get(
+          Uri.parse('$_baseUrl/discover/movie?api_key=$_apiKey&with_genres=$genreId&page=$page&sort_by=popularity.desc'),
+          headers: {
+            'Authorization': 'Bearer $_accessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> results = data['results'] ?? [];
+          
+          return results.map((movie) {
+            return Movie(
+              id: movie['id'].toString(),
+              title: movie['title'] ?? 'Unknown',
+              imageUrl: movie['poster_path'] != null
+                  ? 'https://image.tmdb.org/t/p/w500${movie['poster_path']}'
+                  : 'https://picsum.photos/300/400?random=genre',
+              category: _getGenreNameFromId(genreId),
+              rating: (movie['vote_average'] ?? 0.0).toStringAsFixed(1),
+              year: movie['release_date'] != null
+                  ? movie['release_date'].toString().split('-')[0]
+                  : 'N/A',
+              description: movie['overview'] ?? 'Sin descripción disponible',
+              cast: [],
+            );
+          }).toList();
+        } else {
+          throw Exception('Error al obtener películas por género: ${response.statusCode}');
+        }
+      },
+      maxRetries: 3,
+      retryDelay: const Duration(seconds: 2),
+    );
+  }
+
+  /// Obtiene actores de una película
+  static Future<List<Map<String, dynamic>>> getMovieCast(String movieId) async {
+    return ConnectivityUtils.executeWithRetries(
+      () async {
+        final response = await http.get(
+          Uri.parse('$_baseUrl/movie/$movieId/credits?api_key=$_apiKey'),
+          headers: {
+            'Authorization': 'Bearer $_accessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> cast = data['cast'] ?? [];
+          
+          return cast
+              .take(10) // Tomar solo los primeros 10
+              .map((actor) {
+            return {
+              'name': actor['name'] ?? 'Unknown',
+              'profilePath': actor['profile_path'] != null
+                  ? 'https://image.tmdb.org/t/p/w500${actor['profile_path']}'
+                  : '',
+              'character': actor['character'] ?? '',
+            };
+          }).toList();
+        } else {
+          return [];
+        }
+      },
+      maxRetries: 2,
+      retryDelay: const Duration(seconds: 1),
+    );
+  }
+
   static Future<Movie?> getMovieDetails(String movieId) async {
     try {
       final response = await http.get(
@@ -159,10 +233,10 @@ class TMDBService {
           
           return genres.map((genre) {
             return {
-            'id': genre['id'],
-            'name': genre['name'],
-          };
-        }).toList();
+              'id': genre['id'],
+              'name': genre['name'],
+            };
+          }).toList();
         } else {
           throw Exception('Error al obtener géneros: ${response.statusCode}');
         }
@@ -170,7 +244,6 @@ class TMDBService {
       maxRetries: 3,
       retryDelay: const Duration(seconds: 2),
     );
-    }
   }
 
   static String _getGenreNameFromId(int genreId) {

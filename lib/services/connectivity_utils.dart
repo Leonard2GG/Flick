@@ -8,7 +8,9 @@ class ConnectivityUtils {
   static Future<bool> hasInternetConnection() async {
     try {
       final result = await _connectivity.checkConnectivity();
-      return !result.contains(ConnectivityResult.none);
+      // En las versiones recientes, checkConnectivity retorna List<ConnectivityResult>
+      final String resultStr = result.toString();
+      return !resultStr.contains('ConnectivityResult.none');
     } catch (e) {
       return false;
     }
