@@ -4,14 +4,21 @@ import 'package:provider/provider.dart';
 import 'providers/movie_provider.dart';
 import 'screens/main_wrapper.dart';
 
-void main() {
+void main() async {
+  // Asegurar que Flutter esté inicializado
+  WidgetsFlutterBinding.ensureInitialized();
+  
   // Ocultar la barra de sistema y navegación permanentemente
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  
+  // Inicializar MovieProvider con SharedPreferences
+  final movieProvider = MovieProvider();
+  await movieProvider.init();
   
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MovieProvider()),
+        ChangeNotifierProvider<MovieProvider>.value(value: movieProvider),
       ],
       child: const FlickApp(),
     ),

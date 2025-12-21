@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/movie.dart';
 import '../providers/movie_provider.dart';
+import '../services/tmdb_service.dart';
 
 enum CardAction { watchLater, discard }
 
@@ -24,59 +25,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   int _currentIndex = 0;
   Offset _dragOffset = Offset.zero;
   CardAction? _currentAction;
-
-  final List<Movie> _allMovies = [
-    Movie(
-      id: '1',
-      title: 'Blade Runner 2049',
-      imageUrl: 'https://picsum.photos/300/400?random=1',
-      category: 'Sci-Fi',
-      rating: '8.0',
-      year: '2017',
-      description: 'Un nuevo cazarrecompensas descubre un secreto perdido.',
-      cast: ['Ryan Gosling', 'Harrison Ford'],
-    ),
-    Movie(
-      id: '2',
-      title: 'Dune',
-      imageUrl: 'https://picsum.photos/300/400?random=2',
-      category: 'Sci-Fi',
-      rating: '8.0',
-      year: '2021',
-      description: 'La épica aventura en el planeta Arrakis.',
-      cast: ['Timothée Chalamet', 'Zendaya'],
-    ),
-    Movie(
-      id: '3',
-      title: 'Forrest Gump',
-      imageUrl: 'https://picsum.photos/300/400?random=3',
-      category: 'Drama',
-      rating: '8.8',
-      year: '1994',
-      description: 'Un hombre con discapacidad intelectual logra cosas extraordinarias.',
-      cast: ['Tom Hanks', 'Sally Field'],
-    ),
-    Movie(
-      id: '4',
-      title: 'The Shawshank Redemption',
-      imageUrl: 'https://picsum.photos/300/400?random=4',
-      category: 'Drama',
-      rating: '9.3',
-      year: '1994',
-      description: 'La historia de amistad y esperanza en prisión.',
-      cast: ['Tim Robbins', 'Morgan Freeman'],
-    ),
-    Movie(
-      id: '5',
-      title: 'Mad Max: Fury Road',
-      imageUrl: 'https://picsum.photos/300/400?random=5',
-      category: 'Acción',
-      rating: '8.1',
-      year: '2015',
-      description: 'Una persecución épica en un desierto post-apocalíptico.',
-      cast: ['Tom Hardy', 'Charlize Theron'],
-    ),
-  ];
+  late Future<List<Movie>> _moviesFuture;
+  List<Movie> _filteredMovies = [];
 
   @override
   void initState() {
@@ -86,6 +36,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       vsync: this,
     );
     _pageController = PageController();
+    _moviesFuture = TMDBService.getPopularMovies();
   }
 
   @override
@@ -95,19 +46,20 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     super.dispose();
   }
 
-  List<Movie> _filterMoviesByCategory() {
+  List<Movie> _filterMoviesByName(List<Movie> movies) {
     // Si la categoría es "Descubrir", mostrar todas las películas
     if (widget.categoryName == 'Descubrir') {
-      return _allMovies;
+      return movies;
     }
-    return _allMovies
-        .where((movie) => movie.category == widget.categoryName)
+    // Filtrar películas por nombre (contiene el nombre buscado)
+    final filtered = movies
+        .where((movie) => movie.title.toLowerCase().contains(widget.categoryName.toLowerCase()))
         .toList();
+    return filtered;
   }
 
   void _handleSwipeAction(CardAction action) {
-    final filteredMovies = _filterMoviesByCategory();
-    final movie = filteredMovies[_currentIndex];
+    final movie = _filteredMovies[_currentIndex];
 
     if (action == CardAction.watchLater) {
       context.read<MovieProvider>().addToWatchlist(movie);
@@ -115,7 +67,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       // Acción descartada
     }
 
-    if (_currentIndex < filteredMovies.length - 1) {
+    if (_currentIndex < _filteredMovies.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -195,62 +147,141 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final filteredMovies = _filterMoviesByCategory();
+    return Scaffold(
+      body: FutureBuilder<List<Movie>>(
+        future: _moviesFuture,
+        builder: (context, snapshot) {
+          // Estado de carga
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Cargando películas...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
 
-    if (filteredMovies.isEmpty) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // Estado de error
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Colors.red[400],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Error al cargar películas',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    snapshot.error.toString(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _moviesFuture = TMDBService.getPopularMovies();
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.greenAccent,
+                    ),
+                    child: const Text(
+                      'Reintentar',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Datos cargados exitosamente
+          final allMovies = snapshot.data ?? [];
+          _filteredMovies = _filterMoviesByName(allMovies);
+
+          if (_filteredMovies.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.movie_filter,
+                    size: 80,
+                    color: Colors.grey[700],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'No hay películas',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'para "${widget.categoryName}"',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Stack(
             children: [
-              Icon(
-                Icons.movie_filter,
-                size: 80,
-                color: Colors.grey[700],
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'No hay películas',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[400],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'en la categoría ${widget.categoryName}',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-                textAlign: TextAlign.center,
+              // PageView con diseño fullscreen
+              PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                    _dragOffset = Offset.zero;
+                    _currentAction = null;
+                  });
+                },
+                itemCount: _filteredMovies.length,
+                itemBuilder: (context, index) {
+                  return _buildFullscreenMovieCard(_filteredMovies[index]);
+                },
               ),
             ],
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          // PageView con diseño fullscreen
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-                _dragOffset = Offset.zero;
-                _currentAction = null;
-              });
-            },
-            itemCount: filteredMovies.length,
-            itemBuilder: (context, index) {
-              return _buildFullscreenMovieCard(filteredMovies[index]);
-            },
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -260,9 +291,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       onHorizontalDragUpdate: (details) {
         setState(() {
           _dragOffset += Offset(details.delta.dx, 0);
-          if (_dragOffset.dx > 50) {
+          if (_dragOffset.dx < -50) {
             _currentAction = CardAction.watchLater;
-          } else if (_dragOffset.dx < -50) {
+          } else if (_dragOffset.dx > 50) {
             _currentAction = CardAction.discard;
           } else {
             _currentAction = null;
@@ -270,9 +301,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
         });
       },
       onHorizontalDragEnd: (details) {
-        if (_dragOffset.dx > 100) {
+        if (_dragOffset.dx < -100) {
           _handleSwipeAction(CardAction.watchLater);
-        } else if (_dragOffset.dx < -100) {
+        } else if (_dragOffset.dx > 100) {
           _handleSwipeAction(CardAction.discard);
         } else {
           setState(() {
@@ -571,7 +602,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,

@@ -1,45 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/movie.dart';
 
 class MovieProvider with ChangeNotifier {
   final List<Movie> _watchlist = [];
-  
-  // Lista maestra de películas (simulando una base de datos)
-  final List<Movie> _allMovies = [
-    Movie(
-      id: '1',
-      title: 'Dune: Part Two',
-      imageUrl: 'https://image.tmdb.org/t/p/original/8uS9LnI3S78vnoo6ZWY9Y09p7vX.jpg',
-      description: 'Paul Atreides se une a Chani y los Fremen mientras busca venganza.',
-      rating: '8.8',
-      year: '2024',
-      cast: ['Timothée Chalamet', 'Zendaya'],
-      category: 'Sci-Fi',
-    ),
-    Movie(
-      id: '2',
-      title: 'Oppenheimer',
-      imageUrl: 'https://image.tmdb.org/t/p/original/8GxvA9zDZUGPBq9Y30YgG3A3Y5.jpg',
-      description: 'La historia del científico J. Robert Oppenheimer.',
-      rating: '8.5',
-      year: '2023',
-      cast: ['Cillian Murphy', 'Emily Blunt'],
-      category: 'Drama',
-    ),
-  ];
+  late SharedPreferences _prefs;
+  bool _isInitialized = false;
 
+  static const String _watchlistKey = 'watchlist_movies';
+
+  // Getter para el watchlist
   List<Movie> get watchlist => _watchlist;
-  List<Movie> get allMovies => _allMovies;
+  bool get isInitialized => _isInitialized;
 
-  void addToWatchlist(Movie movie) {
-    if (!_watchlist.any((m) => m.id == movie.id)) {
-      _watchlist.add(movie);
+  // Inicializar SharedPreferences y cargar watchlist
+  Future<void> init() async {
+    if (_isInitialized) return;
+    
+    _prefs = await SharedPreferences.getInstance();
+    await _loadWatchlist();
+    _isInitialized = true;
+    notifyListeners();
+  }
+
+  // Cargar watchlist desde SharedPreferences
+  Future<void> _loadWatchlist() async {
+    try {
+      final List<String>? savedMovies = _prefs.getStringList(_watchlistKey);
+      
+      if (savedMovies != null && savedMovies.isNotEmpty) {
+        _watchlist.clear();
+        for (final movieJson in savedMovies) {
+          final movie = Movie.fromJsonString(movieJson);
+          _watchlist.add(movie);
+        }
+      }
       notifyListeners();
+    } catch (e) {
+      print('Error al cargar watchlist: $e');
     }
   }
 
-  void removeFromWatchlist(Movie movie) {
+  // Guardar watchlist en SharedPreferences
+  Future<void> _saveWatchlist() async {
+    try {
+      final List<String> moviesJson =
+          _watchlist.map((movie) => movie.toJsonString()).toList();
+      await _prefs.setStringList(_watchlistKey, moviesJson);
+      notifyListeners();
+    } catch (e) {
+      print('Error al guardar watchlist: $e');
+    }
+  }
+
+  // Agregar película a watchlist
+  Future<void> addToWatchlist(Movie movie) async {
+    if (!_watchlist.any((m) => m.id == movie.id)) {
+      _watchlist.add(movie);
+      await _saveWatchlist();
+    }
+  }
+
+  // Eliminar película del watchlist
+  Future<void> removeFromWatchlist(Movie movie) async {
     _watchlist.removeWhere((m) => m.id == movie.id);
+    await _saveWatchlist();
+  }
+
+  // Limpiar todo el watchlist
+  Future<void> clearWatchlist() async {
+    _watchlist.clear();
+    await _prefs.remove(_watchlistKey);
     notifyListeners();
   }
 }
