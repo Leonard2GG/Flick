@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/movie.dart';
 import '../providers/movie_provider.dart';
 import '../services/tmdb_service.dart';
+import '../widgets/cached_image_loader.dart';
 
 enum CardAction { watchLater, discard }
 
@@ -60,12 +62,17 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
   void _handleSwipeAction(CardAction action) {
     final movie = _filteredMovies[_currentIndex];
+    final movieProvider = context.read<MovieProvider>();
 
     if (action == CardAction.watchLater) {
-      context.read<MovieProvider>().addToWatchlist(movie);
+      movieProvider.addToWatchlist(movie);
+      _showActionFeedback('Agregado a mi lista', Colors.greenAccent);
     } else if (action == CardAction.discard) {
-      // Acción descartada
+      _showActionFeedback('Película descartada', Colors.redAccent);
     }
+
+    // Registrar en historial
+    movieProvider.addToHistory(movie);
 
     if (_currentIndex < _filteredMovies.length - 1) {
       _pageController.nextPage(
@@ -76,6 +83,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       // Se acabaron las películas - mostrar pantalla de fin
       _showEndOfMoviesScreen();
     }
+  }
+
+  void _showActionFeedback(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(milliseconds: 1500),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
+      ),
+    );
   }
 
   void _showEndOfMoviesScreen() {
@@ -287,47 +306,44 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   }
 
   Widget _buildFullscreenMovieCard(Movie movie) {
-    return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        setState(() {
-          _dragOffset += Offset(details.delta.dx, 0);
-          if (_dragOffset.dx < -50) {
-            _currentAction = CardAction.watchLater;
-          } else if (_dragOffset.dx > 50) {
-            _currentAction = CardAction.discard;
-          } else {
-            _currentAction = null;
-          }
-        });
-      },
-      onHorizontalDragEnd: (details) {
-        if (_dragOffset.dx < -100) {
-          _handleSwipeAction(CardAction.watchLater);
-        } else if (_dragOffset.dx > 100) {
-          _handleSwipeAction(CardAction.discard);
-        } else {
-          setState(() {
-            _dragOffset = Offset.zero;
-            _currentAction = null;
-          });
-        }
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Imagen de fondo fullscreen
-          Image.network(
-            movie.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey[900],
-                child: const Center(
-                  child: Icon(Icons.movie, size: 80, color: Colors.grey),
-                ),
-              );
-            },
-          ),
+    return Consumer<MovieProvider>(
+      builder: (context, movieProvider, child) {
+        final isInWatchlist = movieProvider.isInWatchlist(movie.id);
+        final isFavorite = movieProvider.isFavorite(movie.id);
+
+        return GestureDetector(
+          onHorizontalDragUpdate: (details) {
+            setState(() {
+              _dragOffset += Offset(details.delta.dx, 0);
+              if (_dragOffset.dx < -50) {
+                _currentAction = CardAction.watchLater;
+              } else if (_dragOffset.dx > 50) {
+                _currentAction = CardAction.discard;
+              } else {
+                _currentAction = null;
+              }
+            });
+          },
+          onHorizontalDragEnd: (details) {
+            if (_dragOffset.dx < -100) {
+              _handleSwipeAction(CardAction.watchLater);
+            } else if (_dragOffset.dx > 100) {
+              _handleSwipeAction(CardAction.discard);
+            } else {
+              setState(() {
+                _dragOffset = Offset.zero;
+                _currentAction = null;
+              });
+            }
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Imagen de fondo fullscreen con cache
+              CachedImageLoader(
+                imageUrl: movie.imageUrl,
+                fit: BoxFit.cover,
+              ),
 
           // Gradiente superior
           Container(
@@ -476,6 +492,86 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // Botones de favorito, compartir y estado watchlist
+                Row(
+                  children: [
+                    // Botón de favorito
+                    GestureDetector(
+                      onTap: () {
+                        movieProvider.toggleFavorite(movie.id);
+                      },
+                      child: AnimatedScale(
+                        scale: isFavorite ? 1.1 : 1.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isFavorite
+                                ? Colors.redAccent.withValues(alpha: 0.8)
+                                : Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Botón de compartir
+                    GestureDetector(
+                      onTap: () {
+                        Share.share(
+                          '${movie.title}\n⭐ ${movie.rating}\n📅 ${movie.year}\n\n${movie.description}',
+                          subject: 'Mira esta película: ${movie.title}',
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.share,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Indicador de watchlist
+                    if (isInWatchlist)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.check, color: Colors.black, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              'En mi lista',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 const Text(
                   'Desliza para más info ▲',
@@ -492,6 +588,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           _buildDetailsSheet(movie),
         ],
       ),
+    );
+      },
     );
   }
 

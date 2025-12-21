@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/movie.dart';
+import 'connectivity_utils.dart';
 
 class TMDBService {
   static const String _baseUrl = 'https://api.themoviedb.org/3';
@@ -9,77 +10,86 @@ class TMDBService {
       'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwNmZiOTEyMDhjZDdmZjI4Njc4ZmI3ODA3ZmM4MjMwYiIsIm5iZiI6MTc2NjI0NjA5Mi43MDUsInN1YiI6IjY5NDZjNmNjYTg5NjBhMTkwOTA3MmM0MSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.TRVdzj6yplZwL_GnEWgKtUIEVm6M7CYQvhgEpk7h2as';
 
   static Future<List<Movie>> getPopularMovies({int page = 1}) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/movie/popular?api_key=$_apiKey&page=$page'),
-        headers: {
-          'Authorization': 'Bearer $_accessToken',
-        },
-      );
+    return ConnectivityUtils.executeWithRetries(
+      () async {
+        final response = await http.get(
+          Uri.parse('$_baseUrl/movie/popular?api_key=$_apiKey&page=$page'),
+          headers: {
+            'Authorization': 'Bearer $_accessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> results = data['results'] ?? [];
-        
-        return results.map((movie) {
-          return Movie(
-            id: movie['id'].toString(),
-            title: movie['title'] ?? 'Unknown',
-            imageUrl: movie['poster_path'] != null
-                ? 'https://image.tmdb.org/t/p/w500${movie['poster_path']}'
-                : 'https://picsum.photos/300/400?random=default',
-            category: _getCategoryFromGenres(movie['genre_ids'] ?? []),
-            rating: (movie['vote_average'] ?? 0.0).toStringAsFixed(1),
-            year: movie['release_date'] != null
-                ? movie['release_date'].toString().split('-')[0]
-                : 'N/A',
-            description: movie['overview'] ?? 'Sin descripción disponible',
-            cast: [], // Los actores requieren otra llamada API
-          );
-        }).toList();
-      } else {
-        throw Exception('Error al obtener películas: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> results = data['results'] ?? [];
+          
+          return results.map((movie) {
+            return Movie(
+              id: movie['id'].toString(),
+              title: movie['title'] ?? 'Unknown',
+              imageUrl: movie['poster_path'] != null
+                  ? 'https://image.tmdb.org/t/p/w500${movie['poster_path']}'
+                  : 'https://picsum.photos/300/400?random=default',
+              category: _getCategoryFromGenres(movie['genre_ids'] ?? []),
+              rating: (movie['vote_average'] ?? 0.0).toStringAsFixed(1),
+              year: movie['release_date'] != null
+                  ? movie['release_date'].toString().split('-')[0]
+                  : 'N/A',
+              description: movie['overview'] ?? 'Sin descripción disponible',
+              cast: [],
+            );
+          }).toList();
+        } else {
+          throw Exception('Error al obtener películas: ${response.statusCode}');
+        }
+      },
+      maxRetries: 3,
+      retryDelay: const Duration(seconds: 2),
+    );
   }
 
   static Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/search/movie?api_key=$_apiKey&query=$query&page=$page'),
-        headers: {
-          'Authorization': 'Bearer $_accessToken',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> results = data['results'] ?? [];
-        
-        return results.map((movie) {
-          return Movie(
-            id: movie['id'].toString(),
-            title: movie['title'] ?? 'Unknown',
-            imageUrl: movie['poster_path'] != null
-                ? 'https://image.tmdb.org/t/p/w500${movie['poster_path']}'
-                : 'https://picsum.photos/300/400?random=search',
-            category: _getCategoryFromGenres(movie['genre_ids'] ?? []),
-            rating: (movie['vote_average'] ?? 0.0).toStringAsFixed(1),
-            year: movie['release_date'] != null
-                ? movie['release_date'].toString().split('-')[0]
-                : 'N/A',
-            description: movie['overview'] ?? 'Sin descripción disponible',
-            cast: [],
-          );
-        }).toList();
-      } else {
-        throw Exception('Error en la búsqueda: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
+    // Validar query
+    if (query.isEmpty || query.length > 100) {
+      return [];
     }
+
+    return ConnectivityUtils.executeWithRetries(
+      () async {
+        final response = await http.get(
+          Uri.parse('$_baseUrl/search/movie?api_key=$_apiKey&query=$query&page=$page'),
+          headers: {
+            'Authorization': 'Bearer $_accessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> results = data['results'] ?? [];
+          
+          return results.map((movie) {
+            return Movie(
+              id: movie['id'].toString(),
+              title: movie['title'] ?? 'Unknown',
+              imageUrl: movie['poster_path'] != null
+                  ? 'https://image.tmdb.org/t/p/w500${movie['poster_path']}'
+                  : 'https://picsum.photos/300/400?random=search',
+              category: _getCategoryFromGenres(movie['genre_ids'] ?? []),
+              rating: (movie['vote_average'] ?? 0.0).toStringAsFixed(1),
+              year: movie['release_date'] != null
+                  ? movie['release_date'].toString().split('-')[0]
+                  : 'N/A',
+              description: movie['overview'] ?? 'Sin descripción disponible',
+              cast: [],
+            );
+          }).toList();
+        } else {
+          throw Exception('Error en la búsqueda: ${response.statusCode}');
+        }
+      },
+      maxRetries: 3,
+      retryDelay: const Duration(seconds: 2),
+    );
   }
 
   static Future<Movie?> getMovieDetails(String movieId) async {
@@ -134,29 +144,32 @@ class TMDBService {
   }
 
   static Future<List<Map<String, dynamic>>> getGenres() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/genre/movie/list?api_key=$_apiKey'),
-        headers: {
-          'Authorization': 'Bearer $_accessToken',
-        },
-      );
+    return ConnectivityUtils.executeWithRetries(
+      () async {
+        final response = await http.get(
+          Uri.parse('$_baseUrl/genre/movie/list?api_key=$_apiKey'),
+          headers: {
+            'Authorization': 'Bearer $_accessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> genres = data['genres'] ?? [];
-        
-        return genres.map((genre) {
-          return {
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> genres = data['genres'] ?? [];
+          
+          return genres.map((genre) {
+            return {
             'id': genre['id'],
             'name': genre['name'],
           };
         }).toList();
-      } else {
-        throw Exception('Error al obtener géneros: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
+        } else {
+          throw Exception('Error al obtener géneros: ${response.statusCode}');
+        }
+      },
+      maxRetries: 3,
+      retryDelay: const Duration(seconds: 2),
+    );
     }
   }
 
