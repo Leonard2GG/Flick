@@ -25,9 +25,14 @@ class MovieSearchDelegate extends SearchDelegate {
 
   @override
   Widget? buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back_ios),
-      onPressed: () => close(context, null),
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: Center(
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () => close(context, null),
+        ),
+      ),
     );
   }
 

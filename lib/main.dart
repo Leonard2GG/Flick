@@ -15,6 +15,14 @@ void main() async {
   final movieProvider = MovieProvider();
   await movieProvider.init();
   
+  // Ocultar el splash screen nativo
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Color(0xFF121212),
+      systemNavigationBarColor: Color(0xFF121212),
+    ),
+  );
+  
   runApp(
     MultiProvider(
       providers: [

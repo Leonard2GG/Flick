@@ -4,7 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import '../models/movie.dart';
 import '../providers/movie_provider.dart';
 import '../services/tmdb_service.dart';
-import '../widgets/movie_search_delegate.dart';
 import '../widgets/cached_image_loader.dart';
 
 enum CardAction { watchLater, discard }
@@ -121,17 +120,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     super.dispose();
   }
 
-  void _refreshMovies() {
-    setState(() {
-      _allMovies = [];
-      _filteredMovies = [];
-      _currentIndex = 0;
-      _currentPage = 1;
-      _dragOffset = Offset.zero;
-      _currentAction = null;
-    });
-    _loadMoreMovies();
-  }
+ 
 
   List<Movie> _filterMoviesByName(List<Movie> movies) {
     // Filtrar películas que no se llamen exactamente como la categoría
@@ -174,26 +163,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.fromSearch
-          ? AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () {
-                  showSearch(context: context, delegate: MovieSearchDelegate());
-                },
-              ),
-            )
-          : null,
-      floatingActionButton: widget.fromSearch
-          ? null
-          : FloatingActionButton(
-              onPressed: _refreshMovies,
-              backgroundColor: Colors.greenAccent,
-              child: const Icon(Icons.refresh, color: Colors.black),
-            ),
-      body: _filteredMovies.isEmpty && _currentPage == 1
+      body: Stack(
+        children: [
+          _filteredMovies.isEmpty && _currentPage == 1
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -252,6 +224,31 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                   ),
               ],
             ),
+          // Botón de retroceso superpuesto si viene desde búsqueda
+          if (widget.fromSearch)
+            Positioned(
+              top: 20,
+              left: 10,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
