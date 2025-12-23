@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => AnimatedEntrance(
-                      delay: Duration(milliseconds: 100 + (index * 30)),
+                      delay: Duration(milliseconds: 50 + (index * 10)),
                       child: CategoryCard(
                         name: _mapEnglishToSpanish(genres[index]['name']),
                         color: _getColorForGenre(_mapEnglishToSpanish(genres[index]['name'])),
