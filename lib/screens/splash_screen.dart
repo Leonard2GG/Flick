@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'main_wrapper.dart';
 
 class SplashScreenPage extends StatefulWidget {
   const SplashScreenPage({super.key});
@@ -15,13 +15,13 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     _navigateToHome();
   }
 
-  /// Navega a HomePage después de 3 segundos
+  /// Navega a MainWrapper después de 3 segundos
   void _navigateToHome() {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
         );
       }
     });

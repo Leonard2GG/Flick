@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/category_card.dart';
 import '../widgets/movie_search_delegate.dart';
+import '../widgets/animations.dart';
 import '../services/tmdb_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -110,42 +111,84 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
+          // AppBar mejorado
           SliverAppBar(
             floating: true,
             backgroundColor: const Color(0xFF121212),
             centerTitle: true,
-            title: const Text('FLICK', style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
+            elevation: 2,
+            title: AnimatedEntrance(
+              child: const Text(
+                'FLICK',
+                style: TextStyle(
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.greenAccent,
+                  fontSize: 20,
+                ),
+              ),
+            ),
           ),
+
+          // Contenido principal con animaciones
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Buscador Visual (Caja de texto)
+                  // Buscador mejorado con efecto
                   GestureDetector(
-                    onTap: () => showSearch(context: context, delegate: MovieSearchDelegate()),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.search, color: Colors.grey),
-                          SizedBox(width: 10),
-                          Text('¿Qué quieres ver hoy?', style: TextStyle(color: Colors.grey)),
-                        ],
+                      onTap: () => showSearch(context: context, delegate: MovieSearchDelegate()),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E1E),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: Colors.greenAccent.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.greenAccent.withValues(alpha: 0.1),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.search, color: Colors.greenAccent, size: 22),
+                            SizedBox(width: 12),
+                            Text(
+                              '¿Qué quieres ver hoy?',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  const SizedBox(height: 32),
+
+                  // Sección Categorías mejorada
+                  AnimatedEntrance(
+                    delay: const Duration(milliseconds: 200),
+                    child: const Text(
+                      'Explora por Categoría',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text('Categorías', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
+
+          // Grid de categorías
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: FutureBuilder<List<Map<String, dynamic>>>(
@@ -179,21 +222,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     childAspectRatio: 1.5,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => CategoryCard(
-                      name: _mapEnglishToSpanish(genres[index]['name']),
-                      color: _getColorForGenre(_mapEnglishToSpanish(genres[index]['name'])),
-                      gradientColors: _getGradientColorsForGenre(_mapEnglishToSpanish(genres[index]['name'])),
-                      onTap: () {
-                        if (widget.onCategorySelected != null) {
-                          widget.onCategorySelected!(_mapEnglishToSpanish(genres[index]['name']));
-                        }
-                      },
+                    (context, index) => AnimatedEntrance(
+                      delay: Duration(milliseconds: 250 + (index * 80)),
+                      child: CategoryCard(
+                        name: _mapEnglishToSpanish(genres[index]['name']),
+                        color: _getColorForGenre(_mapEnglishToSpanish(genres[index]['name'])),
+                        gradientColors: _getGradientColorsForGenre(_mapEnglishToSpanish(genres[index]['name'])),
+                        onTap: () {
+                          if (widget.onCategorySelected != null) {
+                            widget.onCategorySelected!(_mapEnglishToSpanish(genres[index]['name']));
+                          }
+                        },
+                      ),
                     ),
                     childCount: genres.length,
                   ),
                 );
               },
             ),
+          ),
+
+          // Footer spacing
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 40),
           ),
         ],
       ),

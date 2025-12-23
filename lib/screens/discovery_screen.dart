@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../models/movie.dart';
 import '../providers/movie_provider.dart';
 import '../services/tmdb_service.dart';
 import '../widgets/cached_image_loader.dart';
+import '../widgets/share_movie_bottom_sheet.dart';
 
 enum CardAction { watchLater, discard }
 
@@ -134,29 +135,38 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     final movie = _filteredMovies[_currentIndex];
     final movieProvider = context.read<MovieProvider>();
 
-    if (action == CardAction.watchLater) {
-      movieProvider.addToWatchlist(movie);
-    } else if (action == CardAction.discard) {
-      // Película descartada
-    }
+    // Animación: hacer que la tarjeta se desvanezca y se mueva
+    _animationController.forward().then((_) {
+      if (action == CardAction.watchLater) {
+        movieProvider.addToWatchlist(movie);
+        // Feedback háptico
+        HapticFeedback.mediumImpact();
+      } else if (action == CardAction.discard) {
+        // Película descartada
+        HapticFeedback.lightImpact();
+      }
 
-    // Registrar en historial
-    movieProvider.addToHistory(movie);
+      // Registrar en historial
+      movieProvider.addToHistory(movie);
 
-    // Pasar a la siguiente película
-    if (_currentIndex < _filteredMovies.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      // Si no hay más películas, cargar más automáticamente
-      _loadMoreMovies();
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+      // Pasar a la siguiente película con animación suave
+      if (_currentIndex < _filteredMovies.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+      } else {
+        // Si no hay más películas, cargar más automáticamente
+        _loadMoreMovies();
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+      }
+      
+      // Reset animación
+      _animationController.reset();
+    });
   }
 
   @override
@@ -474,9 +484,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                     // Botón de compartir
                     GestureDetector(
                       onTap: () {
-                        Share.share(
-                          '${movie.title}\n⭐ ${movie.rating}\n📅 ${movie.year}\n\n${movie.description}',
-                          subject: 'Mira esta película: ${movie.title}',
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => ShareMovieBottomSheet(movie: movie),
                         );
                       },
                       child: Container(

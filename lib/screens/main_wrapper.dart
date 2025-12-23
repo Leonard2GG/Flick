@@ -29,26 +29,52 @@ class _MainWrapperState extends State<MainWrapper> {
           : _selectedIndex == 1
               ? DiscoveryScreenWrapper(categoryName: _currentCategory)
               : const WatchlistScreen(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-            if (index == 1) {
-              _currentCategory = 'Descubrir';
-            }
-          });
-        },
-        backgroundColor: const Color(0xFF121212),
-        selectedItemColor: Colors.greenAccent,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: false,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Menú'),
-          BottomNavigationBarItem(icon: Icon(Icons.local_movies), label: 'Descubrir'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Mi Lista'),
-        ],
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 8, left: 4, right: 4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+                if (index == 1) {
+                  _currentCategory = 'Descubrir';
+                }
+              });
+            },
+            backgroundColor: const Color(0xFF1E1E1E).withValues(alpha: 0.95),
+            elevation: 10,
+            selectedItemColor: Colors.greenAccent,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: true,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
+                  size: 22,
+                ),
+                label: 'Menú',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 1 ? Icons.local_movies_rounded : Icons.local_movies_outlined,
+                  size: 22,
+                ),
+                label: 'Descubrir',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 2 ? Icons.bookmark_rounded : Icons.bookmark_outline,
+                  size: 22,
+                ),
+                label: 'Mi Lista',
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

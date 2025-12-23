@@ -9,14 +9,15 @@ void main() async {
   // Asegurar que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Ocultar la barra de sistema y navegación permanentemente
+  // Ocultar completamente los elementos del sistema
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  
   
   // Inicializar MovieProvider con SharedPreferences
   final movieProvider = MovieProvider();
   await movieProvider.init();
-  
-  // Establecer colores para las barras del sistema (compatibles con splash)
+
+   // Establecer colores para las barras del sistema (compatibles con splash)
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.black,

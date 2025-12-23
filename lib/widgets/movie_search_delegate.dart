@@ -9,9 +9,14 @@ class MovieSearchDelegate extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return Theme.of(context).copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        elevation: 1,
+      ),
       inputDecorationTheme: const InputDecorationTheme(
         hintStyle: TextStyle(color: Colors.grey),
         border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 8),
       ),
     );
   }
@@ -19,7 +24,13 @@ class MovieSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: IconButton(
+          icon: const Icon(Icons.clear, color: Colors.greenAccent),
+          onPressed: () => query = '',
+        ),
+      ),
     ];
   }
 
@@ -29,7 +40,7 @@ class MovieSearchDelegate extends SearchDelegate {
       padding: const EdgeInsets.only(left: 8.0),
       child: Center(
         child: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.greenAccent),
           onPressed: () => close(context, null),
         ),
       ),
@@ -44,30 +55,33 @@ class MovieSearchDelegate extends SearchDelegate {
   @override
   Widget buildSuggestions(BuildContext context) {
     if (query.isEmpty) {
-      return Container(
-        color: const Color(0xFF121212),
-        child: Center(
-          child: Text(
-            'Escribe para buscar películas',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ),
-      );
+      return _buildEmptyState();
     }
     return _buildSearchResults(context);
   }
 
+  Widget _buildEmptyState() {
+    return Container(
+      color: const Color(0xFF121212),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.movie, size: 80, color: Colors.grey[800]),
+            const SizedBox(height: 16),
+            Text(
+              'Escribe para buscar películas',
+              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchResults(BuildContext context) {
     if (query.isEmpty) {
-      return Container(
-        color: const Color(0xFF121212),
-        child: Center(
-          child: Text(
-            'Escribe para buscar películas',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ),
-      );
+      return _buildEmptyState();
     }
 
     return FutureBuilder(
@@ -88,9 +102,16 @@ class MovieSearchDelegate extends SearchDelegate {
           return Container(
             color: const Color(0xFF121212),
             child: Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 80, color: Colors.red[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al buscar',
+                    style: TextStyle(color: Colors.red[400], fontSize: 16),
+                  ),
+                ],
               ),
             ),
           );
@@ -102,9 +123,16 @@ class MovieSearchDelegate extends SearchDelegate {
           return Container(
             color: const Color(0xFF121212),
             child: Center(
-              child: Text(
-                'No se encontraron películas',
-                style: TextStyle(color: Colors.grey[600]),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off, size: 80, color: Colors.grey[800]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No se encontraron películas',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                  ),
+                ],
               ),
             ),
           );
@@ -125,16 +153,23 @@ class MovieSearchDelegate extends SearchDelegate {
                   child: const Icon(Icons.movie, size: 25, color: Colors.grey),
                 ),
               ),
-              title: Text(results[i].title),
-              subtitle: Text(results[i].year),
+              title: Text(
+                results[i].title,
+                style: const TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                results[i].year,
+                style: TextStyle(color: Colors.grey[500]),
+              ),
               onTap: () {
-                // Al tocar una búsqueda, vamos a la vista de detalle o swipe
                 close(context, null);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        DiscoveryScreen(categoryName: results[i].title, fromSearch: true),
+                    builder: (context) => DiscoveryScreen(
+                      categoryName: results[i].category,
+                      fromSearch: true,
+                    ),
                   ),
                 );
               },
