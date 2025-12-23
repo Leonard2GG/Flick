@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/discovery_screen.dart';
+import '../screens/movie_detail_screen.dart';
 import '../services/tmdb_service.dart';
 
 class MovieSearchDelegate extends SearchDelegate {
@@ -166,10 +166,7 @@ class MovieSearchDelegate extends SearchDelegate {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DiscoveryScreen(
-                      categoryName: results[i].category,
-                      fromSearch: true,
-                    ),
+                    builder: (context) => MovieDetailScreen(movie: results[i]),
                   ),
                 );
               },

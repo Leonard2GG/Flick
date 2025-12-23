@@ -139,7 +139,24 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             ],
                           ],
                         ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.greenAccent),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                movieProvider.removeFromWatchlist(movie);
+                                setState(() {});
+                              },
+                              child: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.redAccent,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right, color: Colors.greenAccent),
+                          ],
+                        ),
                       ),
                     );
                   },
