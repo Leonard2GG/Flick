@@ -32,8 +32,10 @@ $castList
   /// Descarga la imagen de la película y comparte con la imagen
   static Future<void> shareMovieWithImage(Movie movie) async {
     try {
-      // Descargar imagen temporalmente
-      final response = await http.get(Uri.parse(movie.imageUrl));
+      // Primero intentamos compartir con imagen
+      final response = await http.get(Uri.parse(movie.imageUrl)).timeout(
+        const Duration(seconds: 10),
+      );
       
       if (response.statusCode == 200) {
         // Obtener directorio temporal
@@ -43,21 +45,45 @@ $castList
         // Guardar imagen
         await file.writeAsBytes(response.bodyBytes);
         
-        // Compartir con imagen
-        final text = formatMovieShare(movie);
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          text: text,
-          subject: '${movie.title} - Película recomendada 🎬',
-        );
+        // Verificar que el archivo existe y tiene contenido
+        if (await file.exists() && await file.length() > 0) {
+          // Compartir con imagen
+          final text = formatMovieShare(movie);
+          try {
+            await Share.shareXFiles(
+              [XFile(file.path)],
+              text: text,
+              subject: '${movie.title} - Película recomendada 🎬',
+            ).timeout(const Duration(seconds: 15));
+          } catch (shareError) {
+            // Si falla el compartir con imagen, intentar sin imagen
+            await _shareTextOnly(movie);
+          }
+        } else {
+          // Si el archivo está vacío, compartir solo texto
+          await _shareTextOnly(movie);
+        }
+      } else {
+        // Si la descarga falla, compartir solo texto
+        await _shareTextOnly(movie);
       }
     } catch (e) {
-      // Si falla la descarga, compartir solo el texto
+      // Si hay cualquier error, compartir solo el texto
+      await _shareTextOnly(movie);
+    }
+  }
+
+  /// Comparte solo el texto de la película
+  static Future<void> _shareTextOnly(Movie movie) async {
+    try {
       final text = formatMovieShare(movie);
       await Share.share(
         text,
         subject: '${movie.title} - Película recomendada 🎬',
       );
+    } catch (e) {
+      // Error silencioso si todo falla
+      print('Error al compartir: $e');
     }
   }
 

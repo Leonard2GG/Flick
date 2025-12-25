@@ -18,6 +18,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   late TextEditingController _searchController;
   String _searchQuery = '';
   String? _selectedMovieId;
+  Set<String> _selectedForDeletion = {};
 
   @override
   void initState() {
@@ -38,13 +39,37 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     return Scaffold(
       appBar: _selectedMovieId == null
           ? AppBar(
-              title: const Text(
-                'MI LISTA',
-                style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent),
+              title: Row(
+                children: [
+                  const Text(
+                    'MI LISTA',
+                    style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent),
+                  ),
+                  const Spacer(),
+                  // Icono de basura solo cuando hay películas seleccionadas para eliminar
+                  if (_selectedForDeletion.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        _showDeleteConfirmDialog();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               backgroundColor: const Color(0xFF121212),
               elevation: 0,
-              centerTitle: true,
+              centerTitle: false,
             )
           : null,
       body: Consumer<MovieProvider>(
@@ -98,16 +123,56 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   itemBuilder: (context, index) {
                     final movie = movies[index];
                     final isFavorite = movieProvider.isFavorite(movie.id);
+                    final isSelectedForDeletion = _selectedForDeletion.contains(movie.id);
 
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedMovieId = movie.id),
+                      onTap: () {
+                        if (_selectedForDeletion.isEmpty) {
+                          // Si no hay películas seleccionadas, abrir detalle
+                          setState(() => _selectedMovieId = movie.id);
+                        } else {
+                          // Si hay películas seleccionadas, toggle el checkbox
+                          setState(() {
+                            if (isSelectedForDeletion) {
+                              _selectedForDeletion.remove(movie.id);
+                            } else {
+                              _selectedForDeletion.add(movie.id);
+                            }
+                          });
+                        }
+                      },
+                      onLongPress: () {
+                        // Al mantener presionado, activar modo de selección
+                        setState(() {
+                          if (isSelectedForDeletion) {
+                            _selectedForDeletion.remove(movie.id);
+                          } else {
+                            _selectedForDeletion.add(movie.id);
+                          }
+                        });
+                      },
                       child: ListTile(
-                        leading: CachedImageLoader(
-                          imageUrl: movie.imageUrl,
-                          width: 50,
-                          height: 70,
-                          fit: BoxFit.cover,
-                        ),
+                        leading: _selectedForDeletion.isNotEmpty
+                            ? Checkbox(
+                                value: isSelectedForDeletion,
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value ?? false) {
+                                      _selectedForDeletion.add(movie.id);
+                                    } else {
+                                      _selectedForDeletion.remove(movie.id);
+                                    }
+                                  });
+                                },
+                                fillColor: WidgetStateProperty.all(Colors.greenAccent),
+                                checkColor: Colors.black,
+                              )
+                            : CachedImageLoader(
+                                imageUrl: movie.imageUrl,
+                                width: 50,
+                                height: 70,
+                                fit: BoxFit.cover,
+                              ),
                         title: Text(
                           movie.title,
                           style: const TextStyle(color: Colors.white),
@@ -139,28 +204,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             ],
                           ],
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                movieProvider.removeFromWatchlist(movie);
-                                setState(() {});
-                              },
-                              child: const Icon(
-                                Icons.delete_outline,
-                                color: Colors.redAccent,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chevron_right, color: Colors.greenAccent),
-                          ],
-                        ),
+                        trailing: _selectedForDeletion.isEmpty
+                            ? const Icon(Icons.chevron_right, color: Colors.greenAccent)
+                            : null,
                       ),
                     );
                   },
-                ),
+                )
         ),
       ],
     );
@@ -585,4 +635,43 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       ),
     );
   }
+
+  void _showDeleteConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text(
+          'Confirmar eliminación',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          '¿Deseas eliminar ${_selectedForDeletion.length} película(s)?',
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              final movieProvider = Provider.of<MovieProvider>(context, listen: false);
+              for (var movieId in _selectedForDeletion) {
+                final movie = movieProvider.watchlist.firstWhere((m) => m.id == movieId);
+                movieProvider.removeFromWatchlist(movie);
+              }
+              setState(() {
+                _selectedForDeletion.clear();
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+
