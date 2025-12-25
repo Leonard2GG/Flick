@@ -54,12 +54,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                       _showDeleteConfirmDialog();
                     },
                     child: Container(
-                      margin: const EdgeInsets.all(8),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
                       child: const Icon(
                         Icons.delete_outline,
                         color: Colors.greenAccent,

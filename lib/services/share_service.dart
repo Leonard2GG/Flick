@@ -5,11 +5,19 @@ import 'package:path_provider/path_provider.dart';
 import '../models/movie.dart';
 
 /// Servicio para formatear y compartir películas de forma elegante
+/// Solo comparte nombres de actores sin imágenes de fotos
 class ShareService {
   /// Genera formato elegante para compartir películas en texto plano
+  /// IMPORTANTE: Solo comparte nombres de actores, SIN FOTOS
+  /// Se envían solo los nombres en texto para mejor compatibilidad con WhatsApp
   static String formatMovieShare(Movie movie) {
-    final castList = movie.cast.isNotEmpty 
-        ? movie.cast.take(5).join(', ') 
+    // Obtener solo los nombres de los actores (máximo 5)
+    // Sin fotos ni imágenes adicionales
+    final castNamesList = movie.cast.isNotEmpty 
+        ? movie.cast.take(5).toList()
+        : [];
+    final castNames = castNamesList.isNotEmpty
+        ? castNamesList.join(', ')
         : 'No disponible';
     
     return '''
@@ -22,17 +30,31 @@ class ShareService {
 📝 Sinopsis:
 ${movie.description}
 
-👥 Reparto:
-$castList
+👥 Reparto Principal:
+$castNames
 
 ¿Ya lo viste? ¡Descárgate Flick y descubre más películas!
 ''';
   }
+  
+  /// Extrae solo los nombres de los actores para compartir
+  /// Useful si necesitas solo los nombres sin formato
+  static List<String> getActorNames(Movie movie) {
+    return movie.cast.take(5).toList();
+  }
+  
+  /// Obtiene los nombres de actores formateados como texto simple
+  /// Sin emojis, sin imágenes, solo nombres
+  static String getSimpleCastList(Movie movie) {
+    if (movie.cast.isEmpty) return 'No disponible';
+    return movie.cast.take(5).join(', ');
+  }
 
-  /// Descarga la imagen de la película y comparte con la imagen
+  /// Descarga la imagen de la película (SOLO el poster, NO fotos de actores)
+  /// y comparte con el contenido de texto que incluye nombres de actores
   static Future<void> shareMovieWithImage(Movie movie) async {
     try {
-      // Primero intentamos compartir con imagen
+      // Descargar SOLO el poster de la película (no fotos de actores)
       final response = await http.get(Uri.parse(movie.imageUrl)).timeout(
         const Duration(seconds: 10),
       );
@@ -42,12 +64,13 @@ $castList
         final tempDir = await getTemporaryDirectory();
         final file = File('${tempDir.path}/${movie.id}_poster.jpg');
         
-        // Guardar imagen
+        // Guardar imagen del poster
         await file.writeAsBytes(response.bodyBytes);
         
         // Verificar que el archivo existe y tiene contenido
         if (await file.exists() && await file.length() > 0) {
-          // Compartir con imagen
+          // Compartir: Poster (imagen) + Nombres de actores (texto)
+          // IMPORTANTE: Se comparten SOLO los nombres de actores, sin fotos
           final text = formatMovieShare(movie);
           try {
             await Share.shareXFiles(
@@ -56,7 +79,7 @@ $castList
               subject: '${movie.title} - Película recomendada 🎬',
             ).timeout(const Duration(seconds: 15));
           } catch (shareError) {
-            // Si falla el compartir con imagen, intentar sin imagen
+            // Si falla compartir con imagen, intentar solo con texto
             await _shareTextOnly(movie);
           }
         } else {
@@ -64,16 +87,18 @@ $castList
           await _shareTextOnly(movie);
         }
       } else {
-        // Si la descarga falla, compartir solo texto
+        // Si la descarga falla, compartir solo texto con nombres
         await _shareTextOnly(movie);
       }
     } catch (e) {
-      // Si hay cualquier error, compartir solo el texto
+      // Si hay cualquier error, compartir solo el texto con nombres de actores
       await _shareTextOnly(movie);
     }
   }
 
-  /// Comparte solo el texto de la película
+  /// Comparte solo el texto de la película (sin imágenes)
+  /// Incluye: Título, rating, año, género, sinopsis y NOMBRES de actores
+  /// NO incluye fotos de actores, solo sus nombres
   static Future<void> _shareTextOnly(Movie movie) async {
     try {
       final text = formatMovieShare(movie);
