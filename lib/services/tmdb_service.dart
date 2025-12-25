@@ -17,7 +17,7 @@ class TMDBService {
           headers: {
             'Authorization': 'Bearer $_accessToken',
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -67,7 +67,7 @@ class TMDBService {
           headers: {
             'Authorization': 'Bearer $_accessToken',
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -106,7 +106,7 @@ class TMDBService {
           headers: {
             'Authorization': 'Bearer $_accessToken',
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -152,7 +152,7 @@ class TMDBService {
           headers: {
             'Authorization': 'Bearer $_accessToken',
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -237,7 +237,7 @@ class TMDBService {
           headers: {
             'Authorization': 'Bearer $_accessToken',
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 20));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);

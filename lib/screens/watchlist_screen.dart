@@ -39,37 +39,35 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     return Scaffold(
       appBar: _selectedMovieId == null
           ? AppBar(
-              title: Row(
-                children: [
-                  const Text(
-                    'MI LISTA',
-                    style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent),
-                  ),
-                  const Spacer(),
-                  // Icono de basura solo cuando hay películas seleccionadas para eliminar
-                  if (_selectedForDeletion.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        _showDeleteConfirmDialog();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.redAccent,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                ],
+              title: const Text(
+                'MI LISTA',
+                style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, color: Colors.greenAccent),
               ),
               backgroundColor: const Color(0xFF121212),
               elevation: 0,
-              centerTitle: false,
+              centerTitle: true,
+              actions: [
+                // Icono de basura solo cuando hay películas seleccionadas para eliminar
+                if (_selectedForDeletion.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      _showDeleteConfirmDialog();
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.greenAccent,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+              ],
             )
           : null,
       body: Consumer<MovieProvider>(

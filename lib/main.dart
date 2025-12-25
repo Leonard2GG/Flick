@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/movie_provider.dart';
+import 'screens/main_wrapper.dart';
 //import 'screens/splash_screen.dart';
-import 'screens/home_screen.dart';
 
 
 void main() async {
@@ -50,7 +50,7 @@ class FlickApp extends StatelessWidget {
         primaryColor: Colors.greenAccent,
       ),
       // SplashScreenPage como pantalla inicial
-      home: const HomeScreen(),
+      home: const MainWrapper(),
     );
   }
 }

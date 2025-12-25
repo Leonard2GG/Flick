@@ -38,8 +38,8 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             // Imagen splash_logo centrada y grande
             Image.asset(
               'assets/img/splash_logo.png',
-              width: 400,
-              height: 400,
+              width: 300,
+              height: 300,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 40),
