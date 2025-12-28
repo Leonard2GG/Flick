@@ -25,6 +25,12 @@ class _MainWrapperState extends State<MainWrapper> {
                   _selectedIndex = 1;
                 });
               },
+              onViewMoreTapped: () {
+                setState(() {
+                  _currentCategory = 'Descubrir';
+                  _selectedIndex = 1;
+                });
+              },
             )
           : _selectedIndex == 1
               ? DiscoveryScreenWrapper(categoryName: _currentCategory)

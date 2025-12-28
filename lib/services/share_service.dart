@@ -8,18 +8,9 @@ import '../models/movie.dart';
 /// Solo comparte nombres de actores sin imágenes de fotos
 class ShareService {
   /// Genera formato elegante para compartir películas en texto plano
-  /// IMPORTANTE: Solo comparte nombres de actores, SIN FOTOS
+  /// IMPORTANTE: Solo comparte info básica SIN REPARTO para privacidad
   /// Se envían solo los nombres en texto para mejor compatibilidad con WhatsApp
   static String formatMovieShare(Movie movie) {
-    // Obtener solo los nombres de los actores (máximo 5)
-    // Sin fotos ni imágenes adicionales
-    final castNamesList = movie.cast.isNotEmpty 
-        ? movie.cast.take(5).toList()
-        : [];
-    final castNames = castNamesList.isNotEmpty
-        ? castNamesList.join(', ')
-        : 'No disponible';
-    
     return '''
 🎬 ${movie.title} 🎬
 
@@ -30,26 +21,10 @@ class ShareService {
 📝 Sinopsis:
 ${movie.description}
 
-👥 Reparto Principal:
-$castNames
-
 ¿Ya lo viste? ¡Descárgate Flick y descubre más películas!
 ''';
   }
   
-  /// Extrae solo los nombres de los actores para compartir
-  /// Useful si necesitas solo los nombres sin formato
-  static List<String> getActorNames(Movie movie) {
-    return movie.cast.take(5).toList();
-  }
-  
-  /// Obtiene los nombres de actores formateados como texto simple
-  /// Sin emojis, sin imágenes, solo nombres
-  static String getSimpleCastList(Movie movie) {
-    if (movie.cast.isEmpty) return 'No disponible';
-    return movie.cast.take(5).join(', ');
-  }
-
   /// Descarga la imagen de la película (SOLO el poster, NO fotos de actores)
   /// y comparte con el contenido de texto que incluye nombres de actores
   static Future<void> shareMovieWithImage(Movie movie) async {

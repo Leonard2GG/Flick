@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/movie_provider.dart';
+import 'providers/recommendation_provider.dart';
+import 'services/intelligent_sync_service.dart';
 import 'screens/main_wrapper.dart';
 //import 'screens/splash_screen.dart';
 
@@ -13,6 +15,13 @@ void main() async {
   // Ocultar completamente los elementos del sistema
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   
+  // Inicializar sincronización inteligente
+  final syncService = IntelligentSyncService();
+  await syncService.initialize();
+  
+  // Inicializar recomendaciones
+  final recommendationProvider = RecommendationProvider();
+  await recommendationProvider.initialize();
   
   // Inicializar MovieProvider con SharedPreferences
   final movieProvider = MovieProvider();
@@ -30,6 +39,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<MovieProvider>.value(value: movieProvider),
+        Provider<RecommendationProvider>.value(value: recommendationProvider),
       ],
       child: const FlickApp(),
     ),

@@ -20,8 +20,11 @@
 ### 🎯 Exploración Inteligente
 - **Búsqueda avanzada** de películas con filtros por género
 - **Descubrimiento automático** de nuevas películas
-- **Recomendaciones personalizadas** basadas en tus gustos
+- **Recomendaciones personalizadas** basadas en tus gustos con Machine Learning
 - **Interfaz fluida** con animaciones suaves
+- **Próximos estrenos** con fechas de lanzamiento
+- **Todas las categorías TMDB** disponibles en grid visual
+- **Categorías con gradientes personalizados** para mejor visualización
 
 ### 📋 Gestión de Lista
 - **Watchlist personalizada** para guardar películas
@@ -30,22 +33,33 @@
 - **Gestor de favoritos** para marcar tus películas preferidas
 
 ### 🔄 Funcionalidades Sociales
-- **Compartir películas en WhatsApp** con detalles y reparto
+- **Compartir películas en WhatsApp** de forma privada
 - **Vista previa del contenido** antes de compartir
-- **Formato elegante** con emojis y información detallada
+- **Formato elegante** con emojis e información detallada
 - **Copiar contenido** al portapapeles fácilmente
+- **Sin reparto en compartidas** por privacidad (privacy-focused)
 
 ### 🖼️ Experiencia Visual
 - **Imágenes en caché** para mejor rendimiento
 - **Efecto parallax** en las imágenes de películas
 - **Dark mode** por defecto optimizado para ojos
 - **Animaciones smooth** en transiciones
+- **Grid de categorías** con emojis y gradientes únicos
 
-### 🌐 Conectividad
+### 🧠 Inteligencia Artificial
+- **Algoritmo de ML** analizando patrones de visualización
+- **Recomendaciones ponderadas** (género 40%, rating 30%, recencia 10%, similitud 20%)
+- **Análisis de preferencias** basado en visualizaciones
+- **Películas similares** recomendadas en detalle
+
+### 🌐 Conectividad y Sincronización
 - **Detección automática** de conexión a internet
+- **Sincronización inteligente en background** con adaptive cache
 - **Manejo robusto** de errores de red
 - **Funcionamiento offline** parcial en listas guardadas
-- **Sincronización** automática cuando hay conexión
+- **Cache adaptativo** con límite de 50MB
+- **Limpieza automática** cada 30 minutos de items no usados
+- **Monitoreo de conexión** cada 5 segundos
 
 ---
 
@@ -193,6 +207,43 @@ flutter run
 
 ---
 
+## 📋 Cambios Recientes (v1.1.1)
+
+### 🎨 Interfaz de Usuario - Ajustes de Espaciado
+- ✅ **Espaciado reducido**: Reducido de 32px a 16px entre componentes principales (Próximos estrenos, Recomendaciones, Categorías)
+- ✅ **Padding optimizado**: Reducido padding vertical de 16px a 8px en cada card
+- ✅ **Distancia título-contenido**: Reducido espaciado entre títulos y listas de 12px a 8px
+- ✅ **Grid de categorías**: Mejor proporcionado con espaciado consistente
+
+### 🔧 Navegación Corregida
+- ✅ **MainWrapper visible**: Al tocar "Ver más", ahora regresa al home manteniendo el navegador inferior visible
+- ✅ **Transición suave**: Pop hasta la ruta raíz sin crear nuevas instancias de pantalla
+- ✅ **Import limpio**: Eliminado import no usado de `DiscoveryScreen`
+
+---
+
+## 📋 Cambios Recientes (v1.1.3)
+
+### 🎨 Interfaz de Usuario
+- ✅ **Visualización de categorías mejorada**: Ahora muestra todas las categorías de TMDB en grid 2x con gradientes personalizados
+- ✅ **Cards "Ver más"**: Agregados al final de cada lista de recomendaciones (Próximos Estrenos y Recomendaciones de la App)
+- ✅ **Navegación integrada con MainWrapper**: Al tocar cualquier categoría, el MainWrapper se mantiene visible
+- ✅ **Navegación consistente**: Los cards "Ver más" y las categorías usan el mismo sistema de callbacks
+- ✅ **Layout del home screen**: Reestructurado con tres secciones claras y espaciado óptimo
+- ✅ **Espaciado reducido**: Disminuido el padding vertical y horizontal para una interfaz más compacta
+
+### 🔐 Privacidad
+- ✅ **Eliminación del reparto de compartidas**: Las películas compartidas ya no incluyen la lista de actores (privacy-focused)
+- ✅ **Formato de compartida optimizado**: Solo título, rating, año, género y sinopsis
+
+### 🐛 Correcciones y Mejoras
+- ✅ **Compilación limpia**: Eliminados todos los imports no usados
+- ✅ **Métodos obsoletos removidos**: Limpieza de código heredado
+- ✅ **API key integrada**: CategoryService usa la misma key de TMDB que TMDBService
+
+
+---
+
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Por favor:
@@ -215,8 +266,8 @@ Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 **Creado con ❤️ para los amantes del cine**
 
-- GitHub: [@tu-usuario](https://github.com/tu-usuario)
-- Email: tu-email@ejemplo.com
+- GitHub: @Leonard2GG
+- Email: kiri05062001@gmail.com
 
 ---
 

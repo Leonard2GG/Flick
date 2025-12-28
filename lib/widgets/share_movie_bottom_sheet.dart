@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/movie.dart';
 import '../services/share_service.dart';
 import 'cached_image_loader.dart';
@@ -19,13 +20,29 @@ class _ShareMovieBottomSheetState extends State<ShareMovieBottomSheet> {
   bool _copied = false;
 
   void _copyToClipboard() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Contenido copiado al portapapeles'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.greenAccent,
-      ),
-    );
+    final textToCopy = '''🎬 ${widget.movie.title} 🎬
+
+⭐ Rating: ${widget.movie.rating}/10
+📅 Año: ${widget.movie.year}
+🎭 Género: ${widget.movie.category}
+
+📝 Sinopsis:
+${widget.movie.description}
+
+¿Ya lo viste? ¡Descárgate Flick y descubre más películas!''';
+
+    Clipboard.setData(ClipboardData(text: textToCopy)).then((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Contenido copiado al portapapeles'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.greenAccent,
+          ),
+        );
+      }
+    });
+    
     setState(() {
       _copied = true;
     });
@@ -45,10 +62,6 @@ class _ShareMovieBottomSheetState extends State<ShareMovieBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final castList = widget.movie.cast.isNotEmpty
-        ? widget.movie.cast.take(5).join(', ')
-        : 'No disponible';
-
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFF1E1E1E),
@@ -194,33 +207,6 @@ class _ShareMovieBottomSheetState extends State<ShareMovieBottomSheet> {
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 12),
-
-                          // Reparto
-                          if (widget.movie.cast.isNotEmpty)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  '👥 Reparto:',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.greenAccent,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  castList,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
                         ],
                       ),
                     ),

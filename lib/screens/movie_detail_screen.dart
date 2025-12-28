@@ -19,26 +19,10 @@ class MovieDetailScreen extends StatefulWidget {
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  List<String> _fetchedCast = [];
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    // Intentar cargar reparto actualizado desde TMDB cuando se abra la pantalla
-    _loadCast();
-  }
-
-  Future<void> _loadCast() async {
-    try {
-      final castData = await TMDBService.getMovieCast(widget.movie.id);
-      if (mounted) {
-        setState(() {
-          _fetchedCast = castData.map((c) => (c['name'] ?? '').toString()).where((n) => n.isNotEmpty).toList();
-        });
-      }
-    } catch (_) {
-      // Ignorar errores y dejar el cast que venga en la película
-    }
   }
 
   @override
